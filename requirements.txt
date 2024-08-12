@@ -1,4 +1,3 @@
-mediapipe
 tensorflow
 pandas
 plotly
