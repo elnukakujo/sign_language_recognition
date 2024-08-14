@@ -18,13 +18,21 @@ class sign_classifier:
             Al=tf.keras.activations.relu(Zl)
         return tf.math.add(tf.linalg.matmul(self.parameters["W"+str(self.nlayers-1)], Al),self.parameters["b"+str(self.nlayers-1)])
     
-    def compute_total_loss(self, y_pred, y_true):
-        return tf.reduce_sum(
+    def compute_total_loss(self, y_pred, y_true, l2_lambda):
+        cross_entropy_loss = tf.reduce_sum(
             tf.keras.losses.categorical_crossentropy(y_true,y_pred, from_logits=True)
         )
+        l2_loss = 0
+        for l in range(1, self.nlayers):
+            l2_loss += tf.nn.l2_loss(self.parameters["W" + str(l)])
+        
+        # Total loss: cross-entropy + L2 regularization term
+        total_loss = cross_entropy_loss + l2_lambda * l2_loss
+        
+        return total_loss
 
-    def training(self, X_train, Y_train, X_test, Y_test, hidden_nodes, learning_rate, minibatch_size, num_epochs):
-        print(f"Initializing training with hyperparameters : hidden_nodes:{hidden_nodes}; learning_rate:{learning_rate}; minibatch_size:{minibatch_size}")
+    def training(self, X_train, Y_train, X_test, Y_test, hidden_nodes, learning_rate, minibatch_size, num_epochs, l2_lambda):
+        print(f"Initializing training with hyperparameters : hidden_nodes:{hidden_nodes}; learning_rate:{learning_rate}; minibatch_size:{minibatch_size}; l2_lambda:{l2_lambda}")
         costs = []
         train_acc = []
         test_acc = []
@@ -63,7 +71,7 @@ class sign_classifier:
                     with tf.GradientTape() as tape:
                         ZL = self.forward(tf.transpose(minibatch_X))
 
-                        minibatch_total_loss = self.compute_total_loss(tf.transpose(ZL), minibatch_Y)
+                        minibatch_total_loss = self.compute_total_loss(tf.transpose(ZL), minibatch_Y, l2_lambda)
 
                     # We accumulate the accuracy of all the batches
                     train_accuracy.update_state(minibatch_Y, tf.transpose(ZL))
