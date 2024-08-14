@@ -14,7 +14,7 @@ def display_img(img, label=False):
         )
     fig.show()
     
-def display_metrics(costs= False, train_accs= False, test_accs= False):
+def display_metrics(costs= False, train_accs= False, test_accs= False, title="Evolution of Cost, and Training/Test Accuracy over the Training Steps"):
     fig=go.Figure()
     if costs: 
         fig.add_trace(go.Scatter(
@@ -41,7 +41,7 @@ def display_metrics(costs= False, train_accs= False, test_accs= False):
         ))
 
     fig.update_layout(
-        title="Evolution of Cost, and Training/Test Accuracy over the Training Steps",
+        title=title,
         xaxis=dict(
             title="Epochs"
         ),
