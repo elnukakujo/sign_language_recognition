@@ -2,7 +2,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 def display_img(img, label=False):
-    fig = px.imshow(img)
+    fig = px.imshow(img, color_continuous_scale='gray')
     fig.update_layout(
         xaxis=dict(showticklabels=False),
         yaxis=dict(showticklabels=False)
@@ -47,7 +47,39 @@ def display_metrics(costs= False, train_accs= False, test_accs= False, title="Ev
         ),
         yaxis=dict(
             title="Value",
-            range=[0,1.5]
+            range=[0,1]
+        ),
+        legend_title="Metrics"
+    )
+    fig.show()
+def compare_metric(metrics, title, hyperparameters):
+    fig=go.Figure()
+    for i in range (0, len(metrics)):
+        metric = metrics[i]
+        hyperparameter = hyperparameters[i]
+        customdata = [[hyperparameter['learning_rate'], hyperparameter['hidden_nodes'], 
+                       hyperparameter['minibatch_size'], hyperparameter['l2_lambda']]] * len(metric)
+        fig.add_trace(go.Scatter(
+            x=list(range(len(metric))),
+            y=metric,
+            mode='lines',
+            name=f'Metric {i}',
+            customdata=customdata,
+            hovertemplate=('<b> Value: %{y}</b> <br></br>'+
+                           'Learning rate: %{customdata[0]} <br></br>'+
+                           'Hidden nodes: %{customdata[1]} <br></br>'+
+                           'Mini batch size: %{customdata[2]} <br></br>'+
+                           'L2 lambda: %{customdata[3]} <br></br>'+
+                           '<extra></extra>')
+        ))
+    fig.update_layout(
+        title=title,
+        xaxis=dict(
+            title="Epochs"
+        ),
+        yaxis=dict(
+            title="Value",
+            range=[0,1]
         ),
         legend_title="Metrics"
     )

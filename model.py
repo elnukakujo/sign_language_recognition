@@ -31,13 +31,13 @@ class sign_classifier:
         
         return total_loss
 
-    def training(self, X_train, Y_train, X_test, Y_test, hidden_nodes, learning_rate, minibatch_size, num_epochs, l2_lambda):
+    def training(self, train, test, hidden_nodes, learning_rate, minibatch_size, num_epochs, l2_lambda):
         print(f"Initializing training with hyperparameters : hidden_nodes:{hidden_nodes}; learning_rate:{learning_rate}; minibatch_size:{minibatch_size}; l2_lambda:{l2_lambda}")
         costs = []
         train_acc = []
         test_acc = []
 
-        layer_dims=[784]
+        layer_dims=[64**2]
         for layer in hidden_nodes:
             layer_dims.append(layer)
         layer_dims.append(24)
@@ -49,14 +49,11 @@ class sign_classifier:
         test_accuracy = tf.keras.metrics.CategoricalAccuracy()
         train_accuracy = tf.keras.metrics.CategoricalAccuracy()
         
-        dataset = tf.data.Dataset.zip((X_train, Y_train))
-        test_dataset = tf.data.Dataset.zip((X_test, Y_test))
-        
         # We can get the number of elements of a dataset using the cardinality method
-        m = dataset.cardinality().numpy()
+        m = train.cardinality().numpy()
         
-        minibatches = dataset.batch(minibatch_size).prefetch(8)
-        test_minibatches = test_dataset.batch(minibatch_size).prefetch(8)
+        minibatches = train.batch(minibatch_size).prefetch(8)
+        test_minibatches = test.batch(minibatch_size).prefetch(8)
 
         try:
             for epoch in range(num_epochs):
@@ -83,17 +80,18 @@ class sign_classifier:
                     epoch_total_loss += minibatch_total_loss
                 
                 # We divide the epoch total loss over the number of samples and compute the test accuracy
-                epoch_total_loss /= m
-                for (minibatch_X, minibatch_Y) in test_minibatches:
-                    ZL = self.forward(tf.transpose(minibatch_X))
-                    test_accuracy.update_state(minibatch_Y, tf.transpose(ZL))
+                if epoch%10==0:
+                    epoch_total_loss /= m
+                    for (minibatch_X, minibatch_Y) in test_minibatches:
+                        ZL = self.forward(tf.transpose(minibatch_X))
+                        test_accuracy.update_state(minibatch_Y, tf.transpose(ZL))
 
-                print(f"Epoch {epoch}: cost: {epoch_total_loss}; train_acc: {train_accuracy.result().numpy()}; test_acc: {test_accuracy.result().numpy()}")
-                
-                costs.append(epoch_total_loss)
-                train_acc.append(train_accuracy.result())
-                test_acc.append(test_accuracy.result())
-                test_accuracy.reset_state()
+                    print(f"Epoch {epoch}: cost: {epoch_total_loss}; train_acc: {train_accuracy.result().numpy()}; test_acc: {test_accuracy.result().numpy()}")
+                    
+                    costs.append(epoch_total_loss)
+                    train_acc.append(train_accuracy.result())
+                    test_acc.append(test_accuracy.result())
+                    test_accuracy.reset_state()
         except KeyboardInterrupt:
             print("Keyboard pressed")
 
