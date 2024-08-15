@@ -60,12 +60,13 @@ def compare_metric(metrics, title, hyperparameters):
         customdata = [[hyperparameter['learning_rate'], hyperparameter['hidden_nodes'], 
                        hyperparameter['minibatch_size'], hyperparameter['l2_lambda']]] * len(metric)
         fig.add_trace(go.Scatter(
-            x=list(range(len(metric))),
+            x=[i * 10 for i in range(len(metric))],
             y=metric,
             mode='lines',
             name=f'Metric {i}',
             customdata=customdata,
-            hovertemplate=('<b> Value: %{y}</b> <br></br>'+
+            hovertemplate=('<b> Epoch: %{x}</b> <br></br>'+
+                           '<b> Value: %{y}</b> <br></br>'+
                            'Learning rate: %{customdata[0]} <br></br>'+
                            'Hidden nodes: %{customdata[1]} <br></br>'+
                            'Mini batch size: %{customdata[2]} <br></br>'+
@@ -84,3 +85,13 @@ def compare_metric(metrics, title, hyperparameters):
         legend_title="Metrics"
     )
     fig.show()
+    return fig
+    
+def save_plots_html(filename, train_plot, test_plot):
+    path=f"hypertuning/plots/train_acc/{filename}.html"
+    train_plot.write_html(path)
+    
+    path=f"hypertuning/plots/test_acc/{filename}.html"
+    test_plot.write_html(path)
+    
+    print("Html plots saved")

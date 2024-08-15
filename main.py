@@ -6,9 +6,19 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import pandas as pd
 import numpy as np
-from display import display_img, display_metrics, compare_metric
+from display import display_img, display_metrics, compare_metric, save_plots_html
 from preprocess import preprocess
 from model import sign_classifier
+from datetime import datetime
+import json
+
+def save_results(hyperparameters, train_plot, test_plot):
+    filename = datetime.now().strftime('%Y%m%d_%H%M%S')
+    path=f"hypertuning/hyper_parameters/{filename}.json"
+    with open(path, 'w') as file:
+        json.dump(hyperparameters, file, indent=4)
+    print("Hyperparameters saved")
+    save_plots_html(filename, train_plot, test_plot)
 
 train, test = preprocess(load=True, edge_detect=False, size=(64,64))
 show_img=False
@@ -22,14 +32,13 @@ train_accs=[]
 test_accs=[]
 try: 
     for training in range(0, 10):
-        hidden_nodes = np.sort(np.random.randint(65,75,size=2))[::-1].tolist()
+        hidden_nodes = [70, 65] # np.sort(np.random.randint(65,75,size=2))[::-1].tolist()
         r = np.random.rand()
-        learning_rate = 10**(-5-r)
-        minibatch_size=2**7
-        r = np.random.rand()*2
-        l2_lambda = r
+        learning_rate = (4+np.random.rand()*4)*10**(-5-r)
+        minibatch_size=2**6
+        l2_lambda = 0
         print(f"Training {training}")
-        parameters, costs, train_acc, test_acc = model.training(train, test, hidden_nodes, learning_rate, minibatch_size, num_epochs = 150, l2_lambda=l2_lambda)
+        parameters, costs, train_acc, test_acc = model.training(train, test, hidden_nodes, learning_rate, minibatch_size, num_epochs = 100, l2_lambda=l2_lambda)
         hyper_parameters.append({
             "learning_rate":learning_rate,
             "hidden_nodes":hidden_nodes,
@@ -43,11 +52,12 @@ try:
         print(f"Training finished: cost:{costs[-1].numpy()}; train_acc:{train_acc[-1].numpy()}; test_acc:{test_acc[-1].numpy()}")
 except IndexError:
     print("IndexError: Results empty for this training")
-
-if len(train_accs)!=0:
-    title="Comparison of the train_accuracy along the trainings"
-    compare_metric(train_accs,title,hyper_parameters)
     
-if len(test_accs)!=0:
+if len(train_accs)!=0 and len(test_accs)!=0:
+    title="Comparison of the train_accuracy along the trainings"
+    train_plot = compare_metric(train_accs,title,hyper_parameters)
+    
     title="Comparison of the test_accuracy along the trainings"
-    compare_metric(test_accs,title,hyper_parameters)
+    test_plot = compare_metric(test_accs,title,hyper_parameters)
+
+    save_results(hyper_parameters,train_plot,test_plot)

@@ -92,7 +92,10 @@ class sign_classifier:
                     train_acc.append(train_accuracy.result())
                     test_acc.append(test_accuracy.result())
                     test_accuracy.reset_state()
+            costs.append(epoch_total_loss)
+            train_acc.append(train_accuracy.result())
+            test_acc.append(test_accuracy.result())
         except KeyboardInterrupt:
             print("Keyboard pressed")
-
+        
         return self.parameters, costs, train_acc, test_acc
