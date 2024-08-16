@@ -21,3 +21,6 @@ I mainly focused on the learning rate, the number of hidden layers and their nod
 My best result with 81% train accuracy, 65% test accuracy and a cost of 0.67.
 ![image](https://raw.githubusercontent.com/elnukakujo/sign_language_recognition/main/data/plots/20240816_172458.png)
 Both accuracies had a lot of problem passing ~70% of training accuracy on all my trainings.
+
+### Example of caviar tuning plot
+![image](https://raw.githubusercontent.com/elnukakujo/sign_language_recognition/main/data/plots/example_caviar_tuning.png)
