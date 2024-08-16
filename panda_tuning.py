@@ -12,9 +12,9 @@ from model import sign_classifier
 from datetime import datetime
 
 def generate_hyperparameters():
-    r = np.random.uniform(np.log10(7e-6),np.log10(8e-6))
-    lr= 10**r
-    hidden_nodes = [94, 93, 86, 73] #np.sort(np.random.randint(70,100,size=4))[::-1].tolist()
+    r = np.random.uniform(np.log10(4e-6),np.log10(5e-6))  #np.random.uniform(np.log10(7e-4),np.log10(8e-6))
+    lr= 5e-7
+    hidden_nodes = [85,84] #np.sort(np.random.randint(70,100,size=4))[::-1].tolist()
     minibatch_size=2**9
     l2_lambda = 0
     return {
@@ -42,7 +42,7 @@ def train_model(train, test, model_name=False, epoch=False):
             model.set_hyperparameters(hyperparameters, input_shape, output_shape)
         model.initialize_parameters()
         
-    metrics = model.training(train, test, num_epochs = 20)
+    metrics = model.training(train, test, num_epochs = 1000)
     
     title=f"Evolution of Cost, and Training/Test Accuracy for:" + ";".join(f" {key}:{value[-1]}" for key, value in hyperparameters.items())
     plot = display_metrics(metrics, title, hyperparameters)
@@ -59,4 +59,4 @@ if show_img:
     for image, label in train.take(1):
         display_img(image.numpy().reshape(64,64), np.argmax(label))
 
-hyperparameters, metrics, plot = train_model(train,test,model_name="20240816_133147", epoch=2)#model_name="20240816_133147", epoch=2
+hyperparameters, metrics, plot = train_model(train,test,model_name="20240816_172458", epoch=475)#model_name="20240816_172458", epoch=368

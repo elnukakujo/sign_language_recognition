@@ -99,7 +99,8 @@ class sign_classifier:
             checkpoint_path = f"{self.checkpoint_manager.directory}ckpt-{epoch}"
             self.checkpoint.restore(checkpoint_path).expect_partial()
             print(f"Model restored from checkpoint for epoch {epoch}: {checkpoint_path}")
-    
+        self.current_epoch = epoch+1
+        
     def check_if_previous_metrics(self, costs, train_acc, test_acc):
         if os.path.exists(f"{self.save_path}/hypertuning/metrics/{self.model_name}.json"):
             with open(f"{self.save_path}/hypertuning/metrics/{self.model_name}.json", 'r') as file:
@@ -127,6 +128,9 @@ class sign_classifier:
 
         lr, minibatch_size, l2_lambda = self.get_hyperparameters()
         
+        if not hasattr(self, 'current_epoch'):
+            self.current_epoch=0
+        
         optimizer = tf.keras.optimizers.Adam(lr)
         
         # The CategoricalAccuracy will track the accuracy for this multiclass problem
@@ -139,7 +143,7 @@ class sign_classifier:
         minibatches = train.batch(minibatch_size).prefetch(8)
         test_minibatches = test.batch(minibatch_size).prefetch(8)
         try:
-            for epoch in range(num_epochs):
+            for epoch in range(self.current_epoch,num_epochs):
 
                 epoch_total_loss = 0.
                 
