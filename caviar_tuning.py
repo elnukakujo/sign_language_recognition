@@ -14,11 +14,11 @@ import json
 
 def save_results(hyperparameters, train_plot, test_plot):
     filename = datetime.now().strftime('%Y%m%d_%H%M%S')
-    path=f"hypertuning/hyper_parameters/{filename}.json"
+    path=f"hypertuning/caviar/hyper_parameters/{filename}.json"
     with open(path, 'w') as file:
         json.dump(hyperparameters, file, indent=4)
     print("Hyperparameters saved")
-    save_plots_html(filename, train_plot, test_plot)
+    save_plots_html("hypertuning/caviar/", filename, train_plot, test_plot)
 
 train, test = preprocess(load=True, edge_detect=False, size=(64,64))
 show_img=False
@@ -31,14 +31,14 @@ hyper_parameters = []
 train_accs=[]
 test_accs=[]
 try: 
-    for training in range(0, 10):
-        hidden_nodes = [70, 65] # np.sort(np.random.randint(65,75,size=2))[::-1].tolist()
-        r = np.random.rand()
-        learning_rate = (4+np.random.rand()*4)*10**(-5-r)
+    for training in range(0, 3):
+        hidden_nodes = np.sort(np.random.randint(70,100,size=4))[::-1].tolist() # np.sort(np.random.randint(65,75,size=2))[::-1].tolist()
+        r = np.random.uniform(np.log10(6e-7),np.log10(4e-6))
+        learning_rate = 10**(r)
         minibatch_size=2**6
         l2_lambda = 0
         print(f"Training {training}")
-        parameters, costs, train_acc, test_acc = model.training(train, test, hidden_nodes, learning_rate, minibatch_size, num_epochs = 100, l2_lambda=l2_lambda)
+        parameters, costs, train_acc, test_acc = model.training(train, test, hidden_nodes, learning_rate, minibatch_size, num_epochs = 200, l2_lambda=l2_lambda)
         hyper_parameters.append({
             "learning_rate":learning_rate,
             "hidden_nodes":hidden_nodes,

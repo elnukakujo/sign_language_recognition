@@ -14,30 +14,45 @@ def display_img(img, label=False):
         )
     fig.show()
     
-def display_metrics(costs= False, train_accs= False, test_accs= False, title="Evolution of Cost, and Training/Test Accuracy over the Training Steps"):
+def display_metrics(metrics, title, hyperparameters):
     fig=go.Figure()
-    if costs: 
-        fig.add_trace(go.Scatter(
-            x=list(range(len(costs))),
-            y=costs,
-            mode='lines',
-            name='Cost'
-        ))
-
-    if train_accs:
-        fig.add_trace(go.Scatter(
-            x=list(range(len(train_accs))),
-            y=train_accs,
-            mode='lines',
-            name='Train Accuracy'
-        ))
     
-    if test_accs:
+    if type(hyperparameters['lr'])==list:
+        customdata = []
+        for i in range(len(metrics["cost"])):
+            hyperparameter = [hyperparameters['lr'][i], 
+                            hyperparameters['hidden_nodes'][i], 
+                            hyperparameters['minibatch_size'][i], 
+                            hyperparameters['l2_lambda'][i]]
+            for _ in range(len(metrics["cost"][i])):
+                customdata.append(hyperparameter.copy())
+    else:
+        customdata=[[hyperparameters['lr'], 
+                    hyperparameters['hidden_nodes'], 
+                    hyperparameters['minibatch_size'], 
+                    hyperparameters['l2_lambda']]]*len(metrics["cost"][0])
+            
+    flattened_metrics = dict()
+    for key, value in metrics.items():
+        flattened_metric = []
+        for sublist in value:
+            flattened_metric.extend(sublist)  # Add all elements from the sublist to the flattened list
+        flattened_metrics[key] = flattened_metric
+    
+    for key, values in flattened_metrics.items():
         fig.add_trace(go.Scatter(
-            x=list(range(len(test_accs))),
-            y=test_accs,
+            x=list(range(len(values))),
+            y=values,
             mode='lines',
-            name='Test Accuracy'
+            name=key,
+            customdata=customdata,
+            hovertemplate=('<b> Epoch: %{x}</b> <br></br>'+
+                        '<b> Value: %{y}</b> <br></br>'+
+                        'Learning rate: %{customdata[0]} <br></br>'+
+                        'Hidden nodes: %{customdata[1]} <br></br>'+
+                        'Mini batch size: %{customdata[2]} <br></br>'+
+                        'L2 lambda: %{customdata[3]} <br></br>'+
+                        '<extra></extra>')
         ))
 
     fig.update_layout(
@@ -52,15 +67,17 @@ def display_metrics(costs= False, train_accs= False, test_accs= False, title="Ev
         legend_title="Metrics"
     )
     fig.show()
+    return fig
+
 def compare_metric(metrics, title, hyperparameters):
     fig=go.Figure()
     for i in range (0, len(metrics)):
         metric = metrics[i]
         hyperparameter = hyperparameters[i]
-        customdata = [[hyperparameter['learning_rate'], hyperparameter['hidden_nodes'], 
+        customdata = [[hyperparameter['lr'], hyperparameter['hidden_nodes'], 
                        hyperparameter['minibatch_size'], hyperparameter['l2_lambda']]] * len(metric)
         fig.add_trace(go.Scatter(
-            x=[i * 10 for i in range(len(metric))],
+            x=[i for i in range(len(metric))],
             y=metric,
             mode='lines',
             name=f'Metric {i}',
@@ -87,11 +104,15 @@ def compare_metric(metrics, title, hyperparameters):
     fig.show()
     return fig
     
-def save_plots_html(filename, train_plot, test_plot):
-    path=f"hypertuning/plots/train_acc/{filename}.html"
+def save_plot_html(path,plot):
+    plot.write_html(path)
+    print(f"Plot html saved at {path}")
+
+def save_plots_html(path, filename, train_plot, test_plot):
+    path=f"{path}plots/train_acc/{filename}.html"
     train_plot.write_html(path)
     
-    path=f"hypertuning/plots/test_acc/{filename}.html"
-    test_plot.write_html(path)
+    path=f"{path}plots/test_acc/{filename}.html"
+    save_plot_html(path,test_plot)
     
     print("Html plots saved")
